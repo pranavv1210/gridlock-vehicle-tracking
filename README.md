@@ -12,9 +12,10 @@ Operation Gridlock is a real-time urban security intelligence system that tracks
 - **Geospatial Tracking**: Graph-based road network with predictive routing
 - **Mission Control UI**: Step-by-step interactive demo interface
 - **Routing Intelligence**: OSRM for path prediction with traffic simulation
-- **Image Enhancement**: PIL-based high-quality upscaling (2x/4x)
+- **Image Enhancement**: PIL-based upscaling (2x/4x) + Real-ESRGAN GAN-based super-resolution
 - **Interactive Map**: Leaflet.js + OpenStreetMap with real-time animations
 - **No Paid APIs**: Complete FOSS stack
+- **Multi-Platform Deploy**: Vercel serverless + Render cloud ready
 
 ---
 
@@ -22,44 +23,44 @@ Operation Gridlock is a real-time urban security intelligence system that tracks
 
 | Component | Technology | Why? |
 |-----------|------------|------|
-| Frontend | React + Leaflet.js + Mission Control UI | Interactive mapping & demo |
+| Frontend | React + Leaflet.js | Interactive mapping & dashboards |
 | Backend | FastAPI (Python) | High-performance REST API |
 | Computer Vision | Meta SAM 3 (Hugging Face) | Vehicle detection & segmentation |
-| Image Enhancement | PIL LANCZOS + ImageEnhance | Professional upscaling without dependencies |
+| Image Enhancement | PIL LANCZOS + Real-ESRGAN | Dual-mode: PIL upscaling (fast) + GAN super-resolution (quality) |
 | Vehicle Tracking | Graph-based geospatial engine | ETA prediction & probability scoring |
 | Routing | OSRM (Project-OSRM) | Open-source route calculation |
 | Map Tiles | OpenStreetMap + CartoDB Dark | Free dark-mode tiles |
 | Data | Precomputed SAM 3 masks | 100 detection frames for hub_mgroad |
+| Deployment | Vercel (Frontend) + Render (Backend) | Serverless & cloud-ready |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-gridlock-operation-foss/
+gridlock-vehicle-tracking/
 ├── frontend/gridlock-dashboard/    # React application
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── Map.jsx                    # Main Leaflet map
-│   │   │   ├── MissionControl.jsx         # 7-step demo UI
-│   │   │   ├── DemoWrapper.jsx            # State management
-│   │   │   └── TrackingVisualization.jsx  # Vehicle tracking overlay
-│   │   ├── services/
-│   │   │   ├── api.js                     # Camera/Route/Enhancement APIs
-│   │   │   └── trackingApi.js             # Vehicle tracking API
-│   │   └── constants.js                   # Bangalore nodes config
+│   │   ├── main.jsx                     # Single-page dashboard (Leaflet + Mission Control)
+│   │   └── styles.css                   # Dashboard styling
 │   └── package.json
 ├── backend/                        # FastAPI server
 │   ├── app/
-│   │   ├── main.py                # FastAPI entry + routes
+│   │   ├── main.py                # FastAPI entry + routes (CORS, static mounts)
 │   │   ├── road_network.py        # 9-camera graph structure
 │   │   ├── vehicle_tracking.py    # Geospatial prediction logic
 │   │   └── routes/
 │   │       ├── camera.py          # SAM 3 detection endpoints
 │   │       ├── route.py           # OSRM routing with traffic
 │   │       ├── enhance.py         # PIL image upscaling
-│   │       └── tracking.py        # Vehicle tracking API
-│   └── requirements.txt
+│   │       ├── tracking.py        # Vehicle tracking API
+│   │       ├── vehicle.py         # Vehicle upload & matching
+│   │       ├── sam3.py            # SAM 3 on-demand detection
+│   │       └── realesrgan_enhance.py  # Real-ESRGAN GAN upscaling
+│   ├── requirements.txt
+│   ├── Procfile                   # Render deployment
+│   ├── render.yaml                # Render cloud config
+│   └── vercel.json                # Vercel serverless config
 ├── models/precomputed/             # Pre-computed SAM 3 data
 │   ├── hub_mgroad/                # 100 detections (masks + overlays)
 │   ├── node_1_indiranagar/        # Placeholder metadata
@@ -67,15 +68,25 @@ gridlock-operation-foss/
 │   └── node_3_silkboard/          # Placeholder metadata
 ├── assets/
 │   ├── enhanced/                  # Enhanced images output
+│   ├── vehicle_uploads/           # Uploaded vehicle images
 │   └── videos/                    # Traffic footage (source)
 ├── scripts/
-│   ├── extract_sam3_data.ps1      # Extract precomputed masks
-│   └── test_tracking.ps1          # Test tracking API
-└── docs/
-    ├── SAM3_INTEGRATION.md        # SAM 3 setup guide
-    ├── TRACKING_SYSTEM.md         # Vehicle tracking docs
-    ├── MISSION_CONTROL.md         # UI demo guide
-    └── QUICKSTART.md              # Demo instructions
+│   ├── demo.ps1                  # Full automated API test
+│   ├── extract_sam3_data.ps1     # Extract precomputed masks
+│   ├── test_sam3_data.ps1        # Validate SAM 3 data integrity
+│   └── test_tracking.ps1         # Test tracking API
+├── tools/Real-ESRGAN/             # Real-ESRGAN submodule
+├── docs/
+│   ├── SAM3_INTEGRATION.md        # SAM 3 setup guide
+│   ├── TRACKING_SYSTEM.md         # Vehicle tracking docs
+│   ├── MISSION_CONTROL.md         # UI demo guide
+│   ├── QUICKSTART.md              # Demo instructions
+│   ├── SETUP.md                   # Full setup guide
+│   └── API_TESTING.md             # API test procedures
+└── tests/
+    ├── test_sam3_integration.py
+    ├── test_auto_tracking.py
+    └── test_enhancement.py
 ```
 
 ---
@@ -83,32 +94,39 @@ gridlock-operation-foss/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.13+ (or 3.10+)
-- Node.js 24+ (or 18+)
+- Python 3.10+
+- Node.js 18+
 - Git
 
 ### 1. Backend Setup
 
 ```powershell
 # Navigate to project
-cd "c:\Users\Nishc\OneDrive\Desktop\cmrit hacakthon\gridlock-operation-foss"
+cd gridlock-vehicle-tracking
 
-# Backend already has virtual environment (.venv)
-# Activate it
+# Create & activate virtual environment
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# Start FastAPI server
+# Install dependencies
 cd backend
+pip install -r requirements.txt
+
+# Start FastAPI server
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend will start at: **http://127.0.0.1:8000**
+Backend will start at: **http://127.0.0.1:8000**  
+Interactive API docs: **http://127.0.0.1:8000/docs**
 
 ### 2. Frontend Setup
 
 ```powershell
 # In a NEW terminal (keep backend running)
-cd "c:\Users\Nishc\OneDrive\Desktop\cmrit hacakthon\gridlock-operation-foss\frontend\gridlock-dashboard"
+cd gridlock-vehicle-tracking/frontend/gridlock-dashboard
+
+# Install dependencies
+npm install
 
 # Start React dev server
 npm start
@@ -156,12 +174,19 @@ curl http://127.0.0.1:8000/api/enhance/status
 curl http://127.0.0.1:8000/api/camera/check/hub_mgroad
 ```
 
+### Real-ESRGAN Enhancement
+```powershell
+curl -X POST http://127.0.0.1:8000/api/realesrgan/enhance \
+  -F "file=@test_surveillance.png" \
+  -F "scale=4"
+```
+
 ---
 
 ## 📊 Phase-by-Phase Progress
 
 - [x] **Phase 1**: Project skeleton + virtual environment ✅
-- [x] **Phase 2**: React app with Leaflet map + 4 Bangalore nodes ✅
+- [x] **Phase 2**: React app with Leaflet map + Bangalore nodes ✅
 - [x] **Phase 3**: Map UI with markers, polylines, animations ✅
 - [x] **Phase 4**: Backend API (camera, routing, enhancement) ✅
 - [x] **Phase 5**: SAM 3 integration (100 frames processed) ✅
@@ -170,8 +195,11 @@ curl http://127.0.0.1:8000/api/camera/check/hub_mgroad
 - [x] **Phase 8**: Frontend-backend integration complete ✅
 - [x] **Phase 9**: Mission Control UI (7-step demo) ✅
 - [x] **Phase 10**: Geospatial vehicle tracking system ✅
-- [ ] **Phase 11**: Process 3 more videos for additional nodes
-- [ ] **Phase 12**: Comprehensive testing & validation
+- [x] **Phase 11**: Real-ESRGAN GAN super-resolution integration ✅
+- [x] **Phase 12**: Vercel + Render deployment configuration ✅
+- [x] **Phase 13**: Enhanced vehicle matching & upload system ✅
+- [ ] **Phase 14**: Process 3 more videos for additional nodes
+- [ ] **Phase 15**: Comprehensive testing & validation
 
 ---
 
@@ -184,9 +212,9 @@ curl http://127.0.0.1:8000/api/camera/check/hub_mgroad
 - Shows filename confirmation
 
 **2. ENHANCE** 🔍
-- PIL LANCZOS 2x/4x upscaling
+- PIL LANCZOS 2x/4x upscaling (fast) or Real-ESRGAN GAN (high quality)
 - Display before/after dimensions
-- Quality metrics: 1920x1080 → 3840x2160
+- Quality metrics: 1920×1080 → 3840×2160 (PIL) / 7680×4320 (Real-ESRGAN 4x)
 
 **3. SCAN** 🎯
 - SAM 3 AI detection animation
@@ -286,6 +314,9 @@ GET /api/track/visualize/{tracking_id}
 
 # List all cameras
 GET /api/network/cameras
+
+# Upload vehicle image (for matching)
+POST /api/vehicle/upload
 ```
 
 ---
@@ -296,17 +327,20 @@ GET /api/network/cameras
 - **Mission Control UI**: 7-step interactive demo with stepper component
 - **Geospatial Vehicle Tracking**: Graph-based prediction with ETA calculation
 - **SAM 3 Detection**: 100 precomputed frames for hub_mgroad (100% detection rate)
-- **Image Enhancement**: PIL LANCZOS upscaling (2x/4x) with sharpening
+- **Image Enhancement**: PIL LANCZOS upscaling (2x/4x) + Real-ESRGAN GAN super-resolution
+- **Vehicle Upload & Matching**: Upload suspect vehicle images for cross-referencing
 - **OSRM Routing**: Real-time route calculation with traffic multipliers
 - **Animated Map**: Leaflet.js with pulsing markers, probability circles, polylines
 - **REST API**: 20+ endpoints for camera, routing, enhancement, tracking
 - **Real-time Updates**: Backend health monitoring, ETA countdowns
 - **Probability Scoring**: Distance-based route likelihood (85% → 25%)
 - **Search Windows**: Automated camera activation timing (ETA ± 20%)
+- **Multi-Platform Deploy**: Vercel serverless (frontend) + Render cloud (backend)
+- **Render Vehicle Path**: Animated green line connecting detected camera locations
 
 ### 🔄 In Progress
-- Frontend compilation (syntax fixes needed)
 - Additional SAM 3 processing for 3 more nodes
+- Comprehensive test suite for all API endpoints
 
 ### 📋 Future Enhancements
 - Real-time traffic API integration
@@ -323,6 +357,9 @@ GET /api/network/cameras
 - **[TRACKING_SYSTEM.md](docs/TRACKING_SYSTEM.md)** - Vehicle tracking architecture
 - **[MISSION_CONTROL.md](docs/MISSION_CONTROL.md)** - UI demo guide
 - **[QUICKSTART.md](docs/QUICKSTART.md)** - Quick demo instructions
+- **[SETUP.md](docs/SETUP.md)** - Full setup guide
+- **[API_TESTING.md](docs/API_TESTING.md)** - API test procedures
+- **[RENDER_PATH_FEATURE.md](RENDER_PATH_FEATURE.md)** - Render Vehicle Path feature docs
 
 ---
 
@@ -372,16 +409,30 @@ This will test:
 1. ✅ Backend connectivity
 2. ✅ Camera network (9 nodes)
 3. ✅ SAM 3 detection
-4. ✅ Image enhancement
+4. ✅ Image enhancement (PIL + Real-ESRGAN)
 5. ✅ OSRM routing
 6. ✅ Vehicle tracking
 7. ✅ Tracking handover loop
 
 ---
 
+## 🌐 Deployment
+
+### Vercel (Frontend)
+```powershell
+cd frontend/gridlock-dashboard
+npx vercel --prod
+```
+
+### Render (Backend)
+The project includes a `render.yaml` and `Procfile` for Render deployment.  
+See [Render Deployment Guide](backend/render.yaml) for details.
+
+---
+
 ## 📝 License
 
-MIT License - See LICENSE file
+MIT License - See [LICENSE](LICENSE) file
 
 ---
 
@@ -394,9 +445,11 @@ MIT License - See LICENSE file
 ✅ **Production-Ready** - REST API, error handling, real-time updates  
 ✅ **Interactive Demo** - Mission Control UI tells a story  
 ✅ **Scalable Architecture** - Easy to add more cameras/cities  
-✅ **Well-Documented** - 4 comprehensive guides + inline comments  
+✅ **Well-Documented** - Comprehensive guides + inline comments  
 ✅ **Real AI Integration** - SAM 3 with 100 processed frames  
 ✅ **No Credit Cards** - All tools free/self-hosted  
+✅ **Dual Enhancement** - PIL (fast) + Real-ESRGAN GAN (quality)  
+✅ **Cloud-Ready** - Vercel + Render deployment configs  
 
 **Technical Highlights:**
 - Graph theory for road networks
@@ -405,10 +458,12 @@ MIT License - See LICENSE file
 - Animated map visualizations
 - 7-step narrative demo flow
 - 20+ REST API endpoints
+- GAN-based image super-resolution
+- Serverless deployment architecture
 
 ---
 
 **Built for CMRIT Hackathon 2025** 🚀  
-**Team:** Operation Gridlock  
-**Status:** ✅ Backend operational | ⚠️ Frontend in progress  
+**GitHub:** [github.com/pranavv1210/gridlock-vehicle-tracking](https://github.com/pranavv1210/gridlock-vehicle-tracking)  
+**Status:** ✅ Fully operational | 🌐 Deployable to Vercel + Render  
 **Demo Ready:** Backend APIs fully testable via curl/Postman
