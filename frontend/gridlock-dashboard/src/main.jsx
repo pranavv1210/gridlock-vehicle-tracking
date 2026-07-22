@@ -222,6 +222,7 @@ function App() {
   const [vehicles, setVehicles] = useState([]);
   const [busy, setBusy] = useState({});
   const [error, setError] = useState("");
+  const [mobileSheet, setMobileSheet] = useState("mission");
 
   const selectedCameraInfo = useMemo(
     () => cameras.find((cam) => cam.id === selectedCamera),
@@ -234,6 +235,18 @@ function App() {
   const activeSearches = predictions.length || autoTracking?.final_status?.total_cameras_checked || 0;
   const threatState = autoTracking || predictions.length ? "ACTIVE PURSUIT" : scanResult?.found ? "TARGET ACQUIRED" : "SURVEILLANCE READY";
   const confidenceScore = scanResult?.found ? pct(scanResult.confidence) : isOperational ? "STANDBY" : "OFFLINE";
+  const missionEvents = [
+    scanResult?.found ? `Target seen at ${scanResult.node_display || scanResult.node}` : "Camera mesh awaiting acquisition",
+    autoTracking ? `${autoTracking.total_hops} handoffs reconstructed` : predictions.length ? `${predictions.length} route options predicted` : "Prediction chain idle",
+    uploadResult ? `Evidence ${uploadResult.filename} secured` : "Evidence locker ready"
+  ];
+  const mobileTabs = [
+    { id: "mission", label: "Mission", icon: Shield },
+    { id: "track", label: "Track", icon: Route },
+    { id: "evidence", label: "Evidence", icon: Upload },
+    { id: "cameras", label: "Cameras", icon: Camera },
+    { id: "intel", label: "Intel", icon: Database }
+  ];
   const missionSteps = [
     {
       label: "Evidence intake",
@@ -403,337 +416,265 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
-      <div className="ambient-grid" />
-      <div className="classification-strip">
+    <main className="gridlock-os">
+      <div className="os-background" />
+      <section className="os-map-canvas" aria-label="Live tactical city map">
+        <CameraMap
+          cameras={cameras}
+          selectedCamera={selectedCamera}
+          predictions={predictions}
+          trackingChain={chain}
+          onSelectCamera={setSelectedCamera}
+        />
+      </section>
+
+      <div className="os-system-bar">
         <span>CLASSIFIED CITY RESPONSE INTERFACE</span>
-        <span>AUTH CHANNEL GRIDLOCK-7</span>
+        <span>GRIDLOCK OS / AUTH CHANNEL 7</span>
         <span>{new Date().toLocaleDateString()}</span>
       </div>
-      <section className="topbar">
-        <div className="brand-lockup">
-          <div className="agency-mark">
-            <Shield size={24} />
-          </div>
+
+      <header className="os-command-header">
+        <div className="os-brand">
+          <div className="os-mark"><Shield size={24} /></div>
           <div>
-            <div className="eyebrow"><Satellite size={16} /> Sovereign city security intelligence</div>
+            <span><Satellite size={14} /> Sovereign city intelligence</span>
             <h1>Operation Gridlock</h1>
-            <p className="subtitle">Unified vehicle interdiction and camera handoff command</p>
           </div>
         </div>
-        <div className="topbar-actions">
-          <div className="threat-card">
+        <div className="os-header-actions">
+          <div className="os-threat">
             <span>Threat state</span>
             <strong>{threatState}</strong>
           </div>
           <StatusPill online={status?.backend === "online"} />
-          <button className="icon-button" onClick={loadCore} title="Refresh backend state">
+          <button className="os-icon-button" onClick={loadCore} title="Refresh backend state">
             {busy.refresh ? <Loader2 className="spin" size={18} /> : <RefreshCcw size={18} />}
           </button>
         </div>
-      </section>
-
-      <section className="command-ribbon">
-        <div>
-          <span>Target plate</span>
-          <strong>{vehicle.license_plate || "UNKNOWN"}</strong>
-        </div>
-        <div>
-          <span>Visual signature</span>
-          <strong>{vehicle.color || "Unknown"} {vehicle.model || "vehicle"}</strong>
-        </div>
-        <div>
-          <span>AI confidence</span>
-          <strong>{confidenceScore}</strong>
-        </div>
-        <div>
-          <span>Active search load</span>
-          <strong>{activeSearches || "IDLE"}</strong>
-        </div>
-      </section>
+      </header>
 
       {error ? (
-        <div className="error-banner">
-          <AlertTriangle size={18} />
+        <div className="os-error">
+          <AlertTriangle size={17} />
           <span>{error}</span>
         </div>
       ) : null}
 
-      <section className="metrics-row">
-        <Metric label="Camera nodes" value={cameras.length || "-"} icon={Camera} />
-        <Metric label="Models mounted" value={status?.models_path || "-"} icon={Activity} />
-        <Metric label="Assets mounted" value={status?.assets_path || "-"} icon={FileUp} />
-        <Metric label="Tracked vehicles" value={vehicles.length} icon={Crosshair} />
+      <aside className="os-panel os-left-intel">
+        <div className="os-panel-title">
+          <span>Mission intelligence</span>
+          <strong>{vehicle.license_plate || "UNKNOWN"}</strong>
+        </div>
+        <div className="os-telemetry-grid">
+          <div><span>Signature</span><strong>{vehicle.color} {vehicle.model}</strong></div>
+          <div><span>Confidence</span><strong>{confidenceScore}</strong></div>
+          <div><span>Cameras</span><strong>{cameras.length || "-"}</strong></div>
+          <div><span>Tracked</span><strong>{vehicles.length}</strong></div>
+        </div>
+        <div className="os-mission-strip">
+          {missionSteps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className={cx("os-mission-step", step.active && "active")}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <Icon size={15} />
+                <div>
+                  <strong>{step.label}</strong>
+                  <small>{step.value}</small>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="os-events">
+          {missionEvents.map((event) => (
+            <div key={event} className="os-event">
+              <span />
+              <p>{event}</p>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      <aside className="os-panel os-detection-card">
+        <div className="os-panel-title">
+          <span>Detection feed</span>
+          {scanResult?.found ? <CheckCircle2 className="ok" size={18} /> : <Camera size={18} />}
+        </div>
+        {scanResult ? (
+          <>
+            <div className="os-detection-data">
+              <div><span>Node</span><strong>{scanResult.node_display || scanResult.node}</strong></div>
+              <div><span>Confidence</span><strong>{pct(scanResult.confidence)}</strong></div>
+              <div><span>Frames</span><strong>{scanResult.detected_frames ?? 0}/{scanResult.total_frames ?? 0}</strong></div>
+              <div><span>Rate</span><strong>{pct(scanResult.detection_rate)}</strong></div>
+            </div>
+            {scanResult.overlay_path ? (
+              <img className="os-detection-image" src={assetUrl(scanResult.overlay_path)} alt="Detection overlay" />
+            ) : null}
+          </>
+        ) : (
+          <div className="os-empty">No camera acquisition yet</div>
+        )}
+      </aside>
+
+      <aside className="os-panel os-control-dock">
+        <div className="os-panel-title">
+          <span>Mission control</span>
+          <strong>Real-time</strong>
+        </div>
+        <label className="os-field">
+          <span>Start camera</span>
+          <select value={selectedCamera} onChange={(event) => setSelectedCamera(event.target.value)}>
+            {cameras.map((cam) => (
+              <option key={cam.id} value={cam.id}>{cam.name}</option>
+            ))}
+          </select>
+        </label>
+        <div className="os-field-row">
+          <label className="os-field">
+            <span>Color</span>
+            <input value={vehicle.color} onChange={(event) => setVehicle({ ...vehicle, color: event.target.value })} />
+          </label>
+          <label className="os-field">
+            <span>Model</span>
+            <input value={vehicle.model} onChange={(event) => setVehicle({ ...vehicle, model: event.target.value })} />
+          </label>
+        </div>
+        <label className="os-field">
+          <span>Plate</span>
+          <input value={vehicle.license_plate} onChange={(event) => setVehicle({ ...vehicle, license_plate: event.target.value })} />
+        </label>
+        <label className="os-field">
+          <span>Distinctive features</span>
+          <textarea value={vehicle.distinctive_features} onChange={(event) => setVehicle({ ...vehicle, distinctive_features: event.target.value })} />
+        </label>
+        <div className="os-action-grid">
+          <button onClick={scanCamera} disabled={busy.scan}>{busy.scan ? <Loader2 className="spin" size={17} /> : <Search size={17} />} Check</button>
+          <button onClick={scanAll} disabled={busy.scanAll}>{busy.scanAll ? <Loader2 className="spin" size={17} /> : <Radio size={17} />} Scan all</button>
+          <button onClick={() => startTracking(false)} disabled={busy.track}>{busy.track ? <Loader2 className="spin" size={17} /> : <Play size={17} />} Track</button>
+          <button className="primary" onClick={() => startTracking(true)} disabled={busy.autoTrack}>{busy.autoTrack ? <Loader2 className="spin" size={17} /> : <GitBranch size={17} />} Auto</button>
+        </div>
+      </aside>
+
+      <aside className="os-panel os-camera-card">
+        <div className="os-panel-title">
+          <span>Selected camera</span>
+          <strong>{selectedCameraInfo?.name || selectedCamera}</strong>
+        </div>
+        <div className="os-connection-list">
+          {connections.map((conn) => (
+            <button key={`${conn.to}-${conn.road_name}`} onClick={() => setSelectedCamera(conn.to)}>
+              <span>{conn.road_name}</span>
+              <strong>{conn.distance_km} km</strong>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <section className="os-bottom-timeline">
+        <div className="os-timeline-head">
+          <span>Prediction chain</span>
+          <strong>{autoTracking ? `${autoTracking.total_distance_km} km reconstructed` : predictions.length ? `${predictions.length} candidates` : "Awaiting route forecast"}</strong>
+        </div>
+        <div className="os-timeline-track">
+          {autoTracking?.tracking_chain?.map((item) => (
+            <div key={`${item.hop}-${item.camera_id}`} className="os-timeline-node">
+              <span>{item.hop}</span>
+              <strong>{item.camera_name}</strong>
+            </div>
+          ))}
+          {!autoTracking && predictions.map((pred) => (
+            <button key={pred.camera_id} className="os-route-card" onClick={() => markFound(pred.camera_id)}>
+              <strong>{pred.camera_name}</strong>
+              <span>{pred.eta_minutes} min / {pct(pred.probability)}</span>
+            </button>
+          ))}
+          {!autoTracking && !predictions.length ? <div className="os-empty inline">Start tracking to draw the route graph</div> : null}
+        </div>
       </section>
 
-      <section className="ops-strip">
-        {missionSteps.map((step, index) => {
-          const Icon = step.icon;
+      <section className="os-evidence-float">
+        <label>
+          <Video size={16} />
+          Upload
+          <input type="file" accept="image/*,video/*" onChange={handleVehicleUpload} />
+        </label>
+        <select value={enhanceScale} onChange={(event) => setEnhanceScale(Number(event.target.value))}>
+          <option value={2}>2x</option>
+          <option value={4}>4x</option>
+        </select>
+        <label>
+          <ImageUp size={16} />
+          Enhance
+          <input type="file" accept="image/*" onChange={handleEnhance} />
+        </label>
+      </section>
+
+      <nav className="os-mobile-nav">
+        {mobileTabs.map((tab) => {
+          const Icon = tab.icon;
           return (
-            <div key={step.label} className={cx("ops-step", step.active && "active")}>
-              <div className="ops-index">{String(index + 1).padStart(2, "0")}</div>
+            <button key={tab.id} className={cx(mobileSheet === tab.id && "active")} onClick={() => setMobileSheet(tab.id)}>
               <Icon size={18} />
-              <div>
-                <strong>{step.label}</strong>
-                <span>{step.value}</span>
-              </div>
-            </div>
+              <span>{tab.label}</span>
+            </button>
           );
         })}
-      </section>
+      </nav>
 
-      <section className="workspace">
-        <div className="map-panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Camera Network</h2>
-              <p>{selectedCameraInfo?.name || "Select a camera"}</p>
+      <section className="os-mobile-sheet">
+        <div className="sheet-handle" />
+        {mobileSheet === "mission" ? (
+          <>
+            <div className="os-panel-title"><span>Active mission</span><strong>{threatState}</strong></div>
+            <div className="os-telemetry-grid">
+              <div><span>Plate</span><strong>{vehicle.license_plate}</strong></div>
+              <div><span>Confidence</span><strong>{confidenceScore}</strong></div>
             </div>
-            <div className="panel-actions">
-              <span className="live-chip"><span /> LIVE</span>
-              <span className="camera-type">{selectedCameraInfo?.type || "camera"}</span>
+            <div className="os-action-grid">
+              <button onClick={scanCamera}><Search size={17} /> Check</button>
+              <button className="primary" onClick={() => startTracking(true)}><GitBranch size={17} /> Auto track</button>
             </div>
-          </div>
-          <CameraMap
-            cameras={cameras}
-            selectedCamera={selectedCamera}
-            predictions={predictions}
-            trackingChain={chain}
-            onSelectCamera={setSelectedCamera}
-          />
-        </div>
-
-        <aside className="control-panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Mission Control</h2>
-              <p>Authorize camera scans, route forecast, and unit dispatch</p>
-            </div>
-            <span className="control-badge"><Clock3 size={14} /> REAL-TIME</span>
-          </div>
-
-          <label className="field">
-            <span>Start camera</span>
-            <select value={selectedCamera} onChange={(event) => setSelectedCamera(event.target.value)}>
-              {cameras.map((cam) => (
-                <option key={cam.id} value={cam.id}>{cam.name}</option>
+          </>
+        ) : null}
+        {mobileSheet === "track" ? (
+          <>
+            <div className="os-panel-title"><span>Tracking</span><strong>{activeSearches || "Idle"}</strong></div>
+            <div className="os-timeline-track mobile">
+              {(autoTracking?.tracking_chain || []).map((item) => (
+                <div key={`${item.hop}-${item.camera_id}`} className="os-timeline-node"><span>{item.hop}</span><strong>{item.camera_name}</strong></div>
               ))}
-            </select>
-          </label>
-
-          <div className="field-grid">
-            <label className="field">
-              <span>Color</span>
-              <input value={vehicle.color} onChange={(event) => setVehicle({ ...vehicle, color: event.target.value })} />
-            </label>
-            <label className="field">
-              <span>Model</span>
-              <input value={vehicle.model} onChange={(event) => setVehicle({ ...vehicle, model: event.target.value })} />
-            </label>
-          </div>
-
-          <label className="field">
-            <span>Plate</span>
-            <input value={vehicle.license_plate} onChange={(event) => setVehicle({ ...vehicle, license_plate: event.target.value })} />
-          </label>
-
-          <label className="field">
-            <span>Distinctive features</span>
-            <textarea value={vehicle.distinctive_features} onChange={(event) => setVehicle({ ...vehicle, distinctive_features: event.target.value })} />
-          </label>
-
-          <div className="button-grid">
-            <button onClick={scanCamera} disabled={busy.scan}>
-              {busy.scan ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
-              Check camera
-            </button>
-            <button onClick={scanAll} disabled={busy.scanAll}>
-              {busy.scanAll ? <Loader2 className="spin" size={18} /> : <Radio size={18} />}
-              Scan all
-            </button>
-            <button onClick={() => startTracking(false)} disabled={busy.track}>
-              {busy.track ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
-              Start track
-            </button>
-            <button onClick={() => startTracking(true)} disabled={busy.autoTrack}>
-              {busy.autoTrack ? <Loader2 className="spin" size={18} /> : <GitBranch size={18} />}
-              Auto track
-            </button>
-          </div>
-        </aside>
-      </section>
-
-      <section className="lower-grid">
-        <div className="panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Detection Feed</h2>
-              <p>Precomputed SAM detection output from the backend</p>
+              {!autoTracking && predictions.map((pred) => (
+                <div key={pred.camera_id} className="os-route-card"><strong>{pred.camera_name}</strong><span>{pred.eta_minutes} min</span></div>
+              ))}
             </div>
-            {scanResult?.found ? <CheckCircle2 className="ok" size={20} /> : <Camera size={20} />}
-          </div>
-          {scanResult ? (
-            <div className="detection-layout">
-              <div>
-                <div className="result-line">
-                  <span>Node</span>
-                  <strong>{scanResult.node_display || scanResult.node || "Multiple cameras"}</strong>
-                </div>
-                <div className="result-line">
-                  <span>Confidence</span>
-                  <strong>{pct(scanResult.confidence)}</strong>
-                </div>
-                <div className="result-line">
-                  <span>Frames</span>
-                  <strong>{scanResult.detected_frames ?? 0}/{scanResult.total_frames ?? 0}</strong>
-                </div>
-                <div className="result-line">
-                  <span>Detection rate</span>
-                  <strong>{pct(scanResult.detection_rate)}</strong>
-                </div>
-              </div>
-              {scanResult.overlay_path ? (
-                <img className="preview-image" src={assetUrl(scanResult.overlay_path)} alt="Detection overlay" />
-              ) : (
-                <div className="empty-preview">No overlay available</div>
-              )}
+          </>
+        ) : null}
+        {mobileSheet === "evidence" ? (
+          <>
+            <div className="os-panel-title"><span>Evidence</span><strong>{uploadResult ? "Loaded" : "Ready"}</strong></div>
+            <div className="os-action-grid">
+              <label><Video size={17} /> Upload<input type="file" accept="image/*,video/*" onChange={handleVehicleUpload} /></label>
+              <label><ImageUp size={17} /> Enhance<input type="file" accept="image/*" onChange={handleEnhance} /></label>
             </div>
-          ) : (
-            <div className="empty-state">Run a camera check to display detection metadata and overlay frames.</div>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Tracking Predictions</h2>
-              <p>ETA windows and next camera probabilities</p>
+          </>
+        ) : null}
+        {mobileSheet === "cameras" ? (
+          <>
+            <div className="os-panel-title"><span>Cameras</span><strong>{cameras.length} nodes</strong></div>
+            <div className="os-connection-list mobile">
+              {cameras.slice(0, 8).map((cam) => <button key={cam.id} onClick={() => setSelectedCamera(cam.id)}><span>{cam.name}</span><strong>{cam.type}</strong></button>)}
             </div>
-            <Route size={20} />
-          </div>
-          {tracking?.tracking_id ? (
-            <div>
-              <div className="tracking-id">{tracking.tracking_id}</div>
-              <div className="prediction-list">
-                {predictions.map((pred) => (
-                  <button key={pred.camera_id} className="prediction" onClick={() => markFound(pred.camera_id)}>
-                    <div>
-                      <strong>{pred.camera_name}</strong>
-                      <span>{pred.road_name}</span>
-                    </div>
-                    <div className="prediction-meta">
-                      <span>{pred.eta_minutes} min</span>
-                      <b>{pct(pred.probability)}</b>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : autoTracking ? (
-            <div>
-              <div className="auto-summary">
-                <Metric label="Hops" value={autoTracking.total_hops} icon={GitBranch} />
-                <Metric label="Distance" value={`${autoTracking.total_distance_km} km`} icon={Route} />
-                <Metric label="Checked" value={autoTracking.final_status?.total_cameras_checked || 0} icon={Camera} />
-              </div>
-              <div className="chain">
-                {autoTracking.tracking_chain?.map((item) => (
-                  <div key={`${item.hop}-${item.camera_id}`} className="chain-item">
-                    <MapPin size={16} />
-                    <span>{item.camera_name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="empty-state">Start tracking to generate camera handoff predictions.</div>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Evidence Intake</h2>
-              <p>Upload vehicle evidence and generate enhanced viewpoints</p>
-            </div>
-            <Upload size={20} />
-          </div>
-          <div className="upload-row">
-            <label className="upload-button">
-              <Video size={18} />
-              Upload vehicle
-              <input type="file" accept="image/*,video/*" onChange={handleVehicleUpload} />
-            </label>
-            <label className="scale-select">
-              <Gauge size={18} />
-              <select value={enhanceScale} onChange={(event) => setEnhanceScale(Number(event.target.value))}>
-                <option value={2}>2x</option>
-                <option value={4}>4x</option>
-              </select>
-            </label>
-            <label className="upload-button">
-              <ImageUp size={18} />
-              Enhance image
-              <input type="file" accept="image/*" onChange={handleEnhance} />
-            </label>
-          </div>
-          {uploadResult ? (
-            <div className="result-line compact">
-              <span>Latest upload</span>
-              <strong>{uploadResult.filename} ({uploadResult.file_size_mb} MB)</strong>
-            </div>
-          ) : null}
-          {enhancement ? (
-            <div>
-              <div className="result-line compact">
-                <span>Enhancement</span>
-                <strong>{enhancement.original_size} to {enhancement.enhanced_size}</strong>
-              </div>
-              <div className="variation-strip">
-                {enhancement.variations?.slice(0, 5).map((variation) => (
-                  <figure key={variation.path}>
-                    <img src={assetUrl(variation.path)} alt={variation.name} />
-                    <figcaption>{variation.angle}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="empty-state">Choose an image to call `/api/enhance/variations` and view outputs.</div>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Camera Detail</h2>
-              <p>Available footage nodes and outgoing roads</p>
-            </div>
-            <MapPin size={20} />
-          </div>
-          <div className="result-line">
-            <span>Selected</span>
-            <strong>{selectedCameraInfo?.name || selectedCamera}</strong>
-          </div>
-          <div className="connection-list">
-            {connections.map((conn) => (
-              <div key={`${conn.to}-${conn.road_name}`} className="connection">
-                <span>{conn.road_name}</span>
-                <strong>{conn.distance_km} km</strong>
-              </div>
-            ))}
-          </div>
-          <div className="camera-status-grid">
-            {cameraStatus?.nodes
-              ? Object.entries(cameraStatus.nodes).map(([id, node]) => (
-                  <div key={id} className="node-status">
-                    <span>{id.replaceAll("_", " ")}</span>
-                    <strong>{node.available ? `${node.detected_frames}/${node.total_frames}` : "No data"}</strong>
-                  </div>
-                ))
-              : null}
-          </div>
-        </div>
+          </>
+        ) : null}
+        {mobileSheet === "intel" ? (
+          <>
+            <div className="os-panel-title"><span>Intel</span><strong>{vehicles.length} vehicles</strong></div>
+            <div className="os-events">{missionEvents.map((event) => <div key={event} className="os-event"><span /><p>{event}</p></div>)}</div>
+          </>
+        ) : null}
       </section>
     </main>
   );
