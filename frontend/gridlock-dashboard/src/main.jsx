@@ -7,21 +7,28 @@ import {
   AlertTriangle,
   Camera,
   CheckCircle2,
+  Clock3,
   Crosshair,
+  Database,
   FileUp,
   Gauge,
   GitBranch,
   ImageUp,
+  LockKeyhole,
   Loader2,
   MapPin,
   Play,
   Radio,
+  Radar,
   RefreshCcw,
   Route,
+  Satellite,
+  ScanLine,
   Search,
   Shield,
   Upload,
-  Video
+  Video,
+  Zap
 } from "lucide-react";
 import "./styles.css";
 
@@ -176,7 +183,27 @@ function CameraMap({ cameras, selectedCamera, predictions, trackingChain, onSele
     }
   }, [cameras, selectedCamera, predictions, trackingChain, onSelectCamera]);
 
-  return <div ref={mapEl} className="map" />;
+  return (
+    <div className="map-stage">
+      <div ref={mapEl} className="map" />
+      <div className="map-grid" />
+      <div className="map-scanline" />
+      <div className="radar-sweep" />
+      <div className="map-corners" />
+      <div className="map-hud top-left">
+        <span>LIVE CITY MESH</span>
+        <strong>{cameras.length || 0} NODES</strong>
+      </div>
+      <div className="map-hud bottom-left">
+        <span>TRACK VECTOR</span>
+        <strong>{trackingChain?.length ? `${trackingChain.length} HOPS` : `${predictions?.length || 0} PREDICTIONS`}</strong>
+      </div>
+      <div className="map-hud bottom-right">
+        <span>GEO-FENCE</span>
+        <strong>BENGALURU URBAN</strong>
+      </div>
+    </div>
+  );
 }
 
 function App() {
@@ -203,36 +230,40 @@ function App() {
 
   const predictions = tracking?.predictions || tracking?.next_predictions || [];
   const chain = autoTracking?.tracking_chain || [];
+  const isOperational = status?.backend === "online";
+  const activeSearches = predictions.length || autoTracking?.final_status?.total_cameras_checked || 0;
+  const threatState = autoTracking || predictions.length ? "ACTIVE PURSUIT" : scanResult?.found ? "TARGET ACQUIRED" : "SURVEILLANCE READY";
+  const confidenceScore = scanResult?.found ? pct(scanResult.confidence) : isOperational ? "STANDBY" : "OFFLINE";
   const missionSteps = [
     {
       label: "Evidence intake",
       value: uploadResult ? "Loaded" : "Standing by",
       active: Boolean(uploadResult),
-      icon: Upload
+      icon: Database
     },
     {
       label: "Feature lock",
       value: `${vehicle.color || "Unknown"} ${vehicle.model || "vehicle"}`,
       active: Boolean(vehicle.color || vehicle.model || vehicle.license_plate),
-      icon: Crosshair
+      icon: LockKeyhole
     },
     {
       label: "Camera scan",
       value: scanResult?.found ? `${pct(scanResult.confidence)} match` : "No scan yet",
       active: Boolean(scanResult?.found),
-      icon: Search
+      icon: ScanLine
     },
     {
       label: "Route forecast",
       value: predictions.length ? `${predictions.length} routes` : autoTracking ? `${autoTracking.total_hops} hops` : "Awaiting track",
       active: Boolean(predictions.length || autoTracking),
-      icon: Route
+      icon: Radar
     },
     {
       label: "Police alert",
       value: autoTracking || predictions.length ? "Units queued" : "Hold",
       active: Boolean(autoTracking || predictions.length),
-      icon: AlertTriangle
+      icon: Zap
     }
   ];
 
@@ -373,16 +404,51 @@ function App() {
 
   return (
     <main className="app-shell">
+      <div className="ambient-grid" />
+      <div className="classification-strip">
+        <span>CLASSIFIED CITY RESPONSE INTERFACE</span>
+        <span>AUTH CHANNEL GRIDLOCK-7</span>
+        <span>{new Date().toLocaleDateString()}</span>
+      </div>
       <section className="topbar">
-        <div>
-          <div className="eyebrow"><Shield size={16} /> Sovereign city security intelligence</div>
-          <h1>Operation Gridlock</h1>
+        <div className="brand-lockup">
+          <div className="agency-mark">
+            <Shield size={24} />
+          </div>
+          <div>
+            <div className="eyebrow"><Satellite size={16} /> Sovereign city security intelligence</div>
+            <h1>Operation Gridlock</h1>
+            <p className="subtitle">Unified vehicle interdiction and camera handoff command</p>
+          </div>
         </div>
         <div className="topbar-actions">
+          <div className="threat-card">
+            <span>Threat state</span>
+            <strong>{threatState}</strong>
+          </div>
           <StatusPill online={status?.backend === "online"} />
           <button className="icon-button" onClick={loadCore} title="Refresh backend state">
             {busy.refresh ? <Loader2 className="spin" size={18} /> : <RefreshCcw size={18} />}
           </button>
+        </div>
+      </section>
+
+      <section className="command-ribbon">
+        <div>
+          <span>Target plate</span>
+          <strong>{vehicle.license_plate || "UNKNOWN"}</strong>
+        </div>
+        <div>
+          <span>Visual signature</span>
+          <strong>{vehicle.color || "Unknown"} {vehicle.model || "vehicle"}</strong>
+        </div>
+        <div>
+          <span>AI confidence</span>
+          <strong>{confidenceScore}</strong>
+        </div>
+        <div>
+          <span>Active search load</span>
+          <strong>{activeSearches || "IDLE"}</strong>
         </div>
       </section>
 
@@ -423,7 +489,10 @@ function App() {
               <h2>Camera Network</h2>
               <p>{selectedCameraInfo?.name || "Select a camera"}</p>
             </div>
-            <span className="camera-type">{selectedCameraInfo?.type || "camera"}</span>
+            <div className="panel-actions">
+              <span className="live-chip"><span /> LIVE</span>
+              <span className="camera-type">{selectedCameraInfo?.type || "camera"}</span>
+            </div>
           </div>
           <CameraMap
             cameras={cameras}
@@ -438,8 +507,9 @@ function App() {
           <div className="panel-heading">
             <div>
               <h2>Mission Control</h2>
-              <p>Run the backend demo flow from one screen</p>
+              <p>Authorize camera scans, route forecast, and unit dispatch</p>
             </div>
+            <span className="control-badge"><Clock3 size={14} /> REAL-TIME</span>
           </div>
 
           <label className="field">
