@@ -148,32 +148,6 @@ button:disabled,
   opacity: 0.3;
 }
 
-.map-label {
-  position: absolute;
-  z-index: 460;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 800;
-  color: rgba(243, 248, 246, 0.22);
-  letter-spacing: 0;
-  pointer-events: none;
-}
-
-.map-label.city {
-  left: 48%;
-  top: 47%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(2.4rem, 8vw, 7rem);
-}
-
-.map-label.mesh {
-  left: 50%;
-  bottom: 16%;
-  transform: translateX(-50%);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  color: rgba(108, 246, 237, 0.32);
-}
-
 .leaflet-control-container {
   filter: invert(1) hue-rotate(150deg) saturate(0.7);
   opacity: 0.62;
@@ -965,7 +939,7 @@ label span {
 }
 
 .map-hud.top {
-  top: 210px;
+  top: 174px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -1072,7 +1046,7 @@ label span {
   }
 
   .map-hud.top {
-    top: 190px;
+    top: 166px;
   }
 
   .map-hud.bottom-left,
@@ -1117,7 +1091,7 @@ label span {
   }
 
   .map-hud.top {
-    top: 225px;
+    top: 176px;
     left: 32px;
     transform: none;
   }
@@ -1188,7 +1162,7 @@ label span {
   }
 
   .map-hud.top {
-    top: 118px;
+    top: 110px;
     left: 10px;
     right: 10px;
     display: grid;

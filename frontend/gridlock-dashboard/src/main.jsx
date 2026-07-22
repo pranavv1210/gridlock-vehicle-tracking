@@ -223,8 +223,6 @@ function CameraMap({ cameras, selectedCamera, predictions, trackingChain, onSele
       <div className="map-shader" />
       <div className="radar-sweep" />
       <div className="city-grid" />
-      <div className="map-label city">BENGALURU</div>
-      <div className="map-label mesh">LIVE CITY MESH</div>
     </div>
   );
 }
