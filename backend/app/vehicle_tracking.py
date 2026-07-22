@@ -40,7 +40,7 @@ class VehicleTracker:
             # Calculate ETA
             eta_minutes = calculate_eta(distance, road_type="urban")
             
-            # Create search window (ETA ± 20% buffer)
+            # Create search window (ETA +/- 20% buffer)
             buffer_minutes = eta_minutes * 0.2
             search_start = detection_time + timedelta(minutes=eta_minutes - buffer_minutes)
             search_end = detection_time + timedelta(minutes=eta_minutes + buffer_minutes)
@@ -236,18 +236,20 @@ class VehicleTracker:
         current_camera = start_camera_id
         tracking_chain = []
         all_predictions = []
+        visited_cameras = set()
         hop_count = 0
         
-        print(f"🚨 Starting auto-track from {start_camera_id}")
+        print(f"ALERT Starting auto-track from {start_camera_id}")
         
         # MAIN TRACKING LOOP
         while hop_count < max_hops:
             camera_info = get_camera_info(current_camera)
             if not camera_info:
-                print(f"❌ Invalid camera: {current_camera}")
+                print(f"ERROR Invalid camera: {current_camera}")
                 break
             
             # Record detection at current camera
+            visited_cameras.add(current_camera)
             detection_record = {
                 "hop": hop_count,
                 "camera_id": current_camera,
@@ -258,13 +260,17 @@ class VehicleTracker:
                 "status": "detected"
             }
             tracking_chain.append(detection_record)
-            print(f"✅ Hop {hop_count}: Vehicle detected at {camera_info['name']}")
+            print(f"OK Hop {hop_count}: Vehicle detected at {camera_info['name']}")
             
             # Predict next possible cameras
             predictions = self.predict_next_cameras(current_camera, detection_time)
+            unchecked_predictions = [
+                prediction for prediction in predictions
+                if prediction["camera_id"] not in visited_cameras
+            ]
             
-            if not predictions:
-                print(f"🛑 Dead end at {camera_info['name']} - no connections")
+            if not unchecked_predictions:
+                print(f"STOP Search frontier exhausted at {camera_info['name']}")
                 break
             
             # Store predictions for this hop
@@ -272,32 +278,32 @@ class VehicleTracker:
                 "hop": hop_count,
                 "from_camera": current_camera,
                 "from_camera_name": camera_info["name"],
-                "predictions": predictions,
+                "predictions": unchecked_predictions,
                 "cameras_to_check": [
                     {
                         "camera_id": p["camera_id"],
                         "camera_name": p["camera_name"],
                         "eta_minutes": p["eta_minutes"],
                         "probability": p["probability"]
-                    } for p in predictions
+                    } for p in unchecked_predictions
                 ]
             }
             all_predictions.append(hop_predictions)
             
-            print(f"🔍 Checking {len(predictions)} cameras: {[p['camera_name'] for p in predictions]}")
+            print(f"SCAN Checking {len(unchecked_predictions)} cameras: {[p['camera_name'] for p in unchecked_predictions]}")
             
             # Simulate checking ALL predicted cameras
             # In real system: Activate AI on all cameras, check for visual fingerprint
-            found_at = self._simulate_camera_check(predictions, vehicle_fingerprint)
+            found_at = self._simulate_camera_check(unchecked_predictions, vehicle_fingerprint)
             
             if not found_at:
                 # Vehicle LOST - not found at any predicted camera
-                print(f"❌ Vehicle LOST - not found at any of {len(predictions)} cameras")
+                print(f"LOST Vehicle not found at any of {len(unchecked_predictions)} cameras")
                 detection_record["status"] = "lost"
                 break
             
             # Vehicle FOUND! Continue tracking from new camera
-            print(f"🎯 Vehicle FOUND at {found_at['camera_name']}")
+            print(f"FOUND Vehicle at {found_at['camera_name']}")
             current_camera = found_at["camera_id"]
             detection_time = detection_time + timedelta(minutes=found_at["eta_minutes"])
             hop_count += 1
@@ -330,7 +336,7 @@ class VehicleTracker:
         self.tracking_history.append(session)
         self.active_tracking_sessions[tracking_id] = session
         
-        print(f"📊 Tracking complete: {hop_count} hops, {total_distance}km, {len(tracking_chain)} detections")
+        print(f"Tracking complete: {hop_count} hops, {total_distance}km, {len(tracking_chain)} detections")
         
         return session
     
@@ -339,19 +345,12 @@ class VehicleTracker:
         Simulate AI checking all predicted cameras for vehicle
         In production: Would trigger actual SAM3 detection on each camera
         
-        For demo: 85% chance of finding at highest probability camera
+        For demo: deterministically choose the strongest unchecked candidate.
         """
         if not predictions:
             return None
         
-        import random
-        # 85% success rate for demo
-        if random.random() < 0.85:
-            # Found at highest probability camera
-            return predictions[0]
-        else:
-            # Not found (vehicle lost/stopped/different route)
-            return None
+        return predictions[0]
     
     def _calculate_total_distance(self, tracking_chain: List[Dict]) -> float:
         """Calculate total distance traveled across tracking chain"""
@@ -456,7 +455,7 @@ class VehicleTracker:
                 "lat": chain_item["lat"],
                 "lng": chain_item["lng"],
                 "time": chain_item["detection_time"],
-                "message": f"🎯 Vehicle detected at {chain_item['camera_name']}"
+                "message": f"Vehicle detected at {chain_item['camera_name']}"
             })
             
             # Prediction event (if not last)
@@ -468,7 +467,7 @@ class VehicleTracker:
                     "from_camera": pred_data["from_camera"],
                     "from_camera_name": pred_data["from_camera_name"],
                     "predicted_cameras": pred_data["cameras_to_check"],
-                    "message": f"🔍 Checking {len(pred_data['cameras_to_check'])} possible cameras..."
+                    "message": f"Checking {len(pred_data['cameras_to_check'])} possible cameras..."
                 })
         
         return viz_data

@@ -1,0 +1,29 @@
+# Operation Gridlock Deployment
+
+## Backend on Render
+
+Create a new Render Web Service from this GitHub repo.
+
+- Root directory: `backend`
+- Runtime: Python
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Health URL after deploy: `https://YOUR-RENDER-SERVICE.onrender.com/api/status`
+
+Optional SAM3 model initialization is lazy-loaded and not required for the main demo. If you want live SAM3 model loading later, change the build command to:
+
+```bash
+pip install -r requirements-ml.txt
+```
+
+## Frontend on Vercel
+
+Create a new Vercel project from this GitHub repo.
+
+- Root directory: `frontend/gridlock-dashboard`
+- Framework preset: Vite
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable: `VITE_API_BASE=https://YOUR-RENDER-SERVICE.onrender.com`
+
+After the frontend deploys, open the Vercel URL and confirm the top-right status says `Backend online`.

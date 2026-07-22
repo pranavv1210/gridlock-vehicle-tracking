@@ -32,6 +32,8 @@ body,
 
 body {
   background:
+    radial-gradient(circle at 20% -10%, rgba(72, 213, 208, 0.14), transparent 32rem),
+    radial-gradient(circle at 88% 12%, rgba(255, 107, 107, 0.1), transparent 28rem),
     linear-gradient(180deg, rgba(15, 25, 35, 0.96), rgba(8, 12, 18, 1)),
     #0b0f14;
 }
@@ -155,6 +157,73 @@ h2 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.ops-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ops-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 76px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(13, 20, 27, 0.96), rgba(20, 31, 42, 0.9));
+  color: var(--muted);
+  padding: 12px;
+}
+
+.ops-step::after {
+  content: "";
+  position: absolute;
+  inset: auto 10px 0;
+  height: 2px;
+  background: var(--line);
+}
+
+.ops-step.active {
+  border-color: rgba(72, 213, 208, 0.72);
+  color: var(--text);
+  box-shadow: inset 0 0 28px rgba(72, 213, 208, 0.08);
+}
+
+.ops-step.active::after {
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  box-shadow: 0 0 18px rgba(72, 213, 208, 0.7);
+}
+
+.ops-index {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ops-step strong,
+.ops-step span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-step strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.ops-step span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .metric {
@@ -627,6 +696,7 @@ h2 {
   }
 
   .metrics-row,
+  .ops-strip,
   .field-grid,
   .button-grid,
   .detection-layout,

@@ -48,11 +48,11 @@ class SAM3VehicleDetector:
             bool: True if initialization successful
         """
         if not SAM3_AVAILABLE:
-            print("❌ SAM3 not available - missing dependencies")
+            print("ERROR SAM3 not available - missing dependencies")
             return False
             
         if not self.hf_token:
-            print("❌ HF_TOKEN not set in .env file")
+            print("ERROR HF_TOKEN not set in .env file")
             return False
             
         try:
@@ -72,11 +72,11 @@ class SAM3VehicleDetector:
             ).to(self.device)
             
             self.initialized = True
-            print(f"✅ SAM3 model loaded successfully on {self.device}")
+            print(f"OK SAM3 model loaded successfully on {self.device}")
             return True
             
         except Exception as e:
-            print(f"❌ Failed to load SAM3 model: {str(e)}")
+            print(f"ERROR Failed to load SAM3 model: {str(e)}")
             return False
     
     def detect_vehicles_in_frame(
@@ -335,7 +335,7 @@ class SAM3VehicleDetector:
         with open(output_dir / "metadata.json", "w") as f:
             json.dump(metadata, f, indent=2)
         
-        print(f"✅ Processed {processed_count} frames, found {metadata['detected_frames']} detections")
+        print(f"OK Processed {processed_count} frames, found {metadata['detected_frames']} detections")
         print(f"   Detection rate: {metadata['detection_rate']:.1%}")
         
         return metadata

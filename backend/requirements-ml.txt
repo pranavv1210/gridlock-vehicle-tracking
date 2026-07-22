@@ -1,0 +1,6 @@
+# Optional SAM3 / transformer model dependencies.
+# Install these only when enabling /api/sam3 model initialization.
+-r requirements.txt
+transformers>=4.40.0
+torch>=2.0.0
+accelerate>=0.20.0

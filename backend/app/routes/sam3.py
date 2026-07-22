@@ -9,13 +9,6 @@ import shutil
 from datetime import datetime
 import os
 
-# Try to import SAM3 detector (optional)
-try:
-    from app.cv.sam3_detector import get_detector, SAM3_AVAILABLE
-except ImportError:
-    SAM3_AVAILABLE = False
-    def get_detector():
-        raise HTTPException(status_code=503, detail="SAM3 not available. Install: pip install transformers torch")
 from app.cv.vehicle_matcher import vehicle_matcher
 
 router = APIRouter()
@@ -31,15 +24,47 @@ MAX_VIDEO_SIZE_MB = int(os.getenv("MAX_VIDEO_SIZE_MB", 500))
 ALLOWED_FORMATS = os.getenv("ALLOWED_VIDEO_FORMATS", "mp4,avi,mov,mkv").split(",")
 
 
+def load_sam3_detector():
+    """
+    Load SAM3 only when a SAM3 endpoint needs it.
+
+    The rest of Operation Gridlock uses precomputed detection metadata, routing,
+    and vehicle tracking. Importing torch/transformers at FastAPI startup makes
+    health checks and cloud cold starts unnecessarily slow.
+    """
+    try:
+        from app.cv.sam3_detector import get_detector, SAM3_AVAILABLE
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"SAM3 not available. Install: pip install transformers torch. Import error: {exc}",
+        )
+    return get_detector, SAM3_AVAILABLE
+
+
 @router.get("/status")
 async def sam3_status() -> Dict[str, Any]:
     """
     Check SAM3 availability and status
     """
+    try:
+        get_detector, sam3_available = load_sam3_detector()
+    except HTTPException as exc:
+        return {
+            "sam3_available": False,
+            "initialized": False,
+            "model_name": None,
+            "device": None,
+            "hf_token_set": bool(os.getenv("HF_TOKEN")),
+            "supported_formats": ALLOWED_FORMATS,
+            "max_size_mb": MAX_VIDEO_SIZE_MB,
+            "error": exc.detail,
+        }
+
     detector = get_detector()
     
     return {
-        "sam3_available": SAM3_AVAILABLE,
+        "sam3_available": sam3_available,
         "initialized": detector.initialized,
         "model_name": detector.model_name,
         "device": detector.device,
@@ -54,7 +79,8 @@ async def initialize_sam3() -> Dict[str, Any]:
     """
     Initialize SAM3 model (load into memory)
     """
-    if not SAM3_AVAILABLE:
+    get_detector, sam3_available = load_sam3_detector()
+    if not sam3_available:
         raise HTTPException(
             status_code=503,
             detail="SAM3 dependencies not installed. Run: pip install transformers torch"
@@ -137,7 +163,9 @@ async def process_video(
         output_dir = MODELS_PATH / node_name
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Get detector
+        # Get detector only after upload validation. This keeps normal API
+        # startup and non-SAM3 endpoints fast.
+        get_detector, _ = load_sam3_detector()
         detector = get_detector()
         
         # Initialize if needed and not using HSV
@@ -314,7 +342,7 @@ async def compare_video_with_reference(
             max_frames=max_frames
         )
         
-        print(f"✅ Comparison complete:")
+        print("OK Comparison complete:")
         print(f"   - Matched: {match_result['matched']}")
         print(f"   - Total frames: {match_result['total_frames']}")
         print(f"   - Matched frames: {match_result['matched_frames']}")
@@ -347,6 +375,7 @@ async def test_detection() -> Dict[str, Any]:
     """
     Test endpoint to verify SAM3 is working
     """
+    get_detector, _ = load_sam3_detector()
     detector = get_detector()
     
     if not detector.initialized:

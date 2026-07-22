@@ -14,11 +14,11 @@ ROAD_NETWORK = {
         "lng": 77.6063,
         "type": "hub",
         "connections": [
-            {"to": "node_1_indiranagar", "distance_km": 3.2, "road_name": "MG Road → Indiranagar"},
-            {"to": "node_2_koramangala", "distance_km": 5.8, "road_name": "MG Road → Koramangala"},
-            {"to": "node_3_silkboard", "distance_km": 8.5, "road_name": "MG Road → Silk Board"},
-            {"to": "cam_f_ulsoor", "distance_km": 2.5, "road_name": "MG Road → Ulsoor"},
-            {"to": "cam_e_btm", "distance_km": 4.2, "road_name": "MG Road → BTM"},
+            {"to": "node_1_indiranagar", "distance_km": 3.2, "road_name": "MG Road -> Indiranagar"},
+            {"to": "node_2_koramangala", "distance_km": 5.8, "road_name": "MG Road -> Koramangala"},
+            {"to": "node_3_silkboard", "distance_km": 8.5, "road_name": "MG Road -> Silk Board"},
+            {"to": "cam_f_ulsoor", "distance_km": 2.5, "road_name": "MG Road -> Ulsoor"},
+            {"to": "cam_e_btm", "distance_km": 4.2, "road_name": "MG Road -> BTM"},
         ]
     },
     
@@ -29,10 +29,10 @@ ROAD_NETWORK = {
         "lng": 77.6412,
         "type": "checkpoint",
         "connections": [
-            {"to": "hub_mgroad", "distance_km": 3.2, "road_name": "Indiranagar → MG Road"},
-            {"to": "node_2_koramangala", "distance_km": 4.5, "road_name": "Indiranagar → Koramangala"},
-            {"to": "cam_a_airport", "distance_km": 12.0, "road_name": "Indiranagar → Airport Road"},
-            {"to": "cam_b_whitefield", "distance_km": 10.5, "road_name": "Indiranagar → Whitefield"},
+            {"to": "hub_mgroad", "distance_km": 3.2, "road_name": "Indiranagar -> MG Road"},
+            {"to": "node_2_koramangala", "distance_km": 4.5, "road_name": "Indiranagar -> Koramangala"},
+            {"to": "cam_a_airport", "distance_km": 12.0, "road_name": "Indiranagar -> Airport Road"},
+            {"to": "cam_b_whitefield", "distance_km": 10.5, "road_name": "Indiranagar -> Whitefield"},
         ]
     },
     
@@ -43,10 +43,10 @@ ROAD_NETWORK = {
         "lng": 77.6245,
         "type": "checkpoint",
         "connections": [
-            {"to": "hub_mgroad", "distance_km": 5.8, "road_name": "Koramangala → MG Road"},
-            {"to": "node_1_indiranagar", "distance_km": 4.5, "road_name": "Koramangala → Indiranagar"},
-            {"to": "node_3_silkboard", "distance_km": 3.0, "road_name": "Koramangala → Silk Board"},
-            {"to": "cam_c_hsr", "distance_km": 2.5, "road_name": "Koramangala → HSR Layout"},
+            {"to": "hub_mgroad", "distance_km": 5.8, "road_name": "Koramangala -> MG Road"},
+            {"to": "node_1_indiranagar", "distance_km": 4.5, "road_name": "Koramangala -> Indiranagar"},
+            {"to": "node_3_silkboard", "distance_km": 3.0, "road_name": "Koramangala -> Silk Board"},
+            {"to": "cam_c_hsr", "distance_km": 2.5, "road_name": "Koramangala -> HSR Layout"},
         ]
     },
     
@@ -57,10 +57,10 @@ ROAD_NETWORK = {
         "lng": 77.6220,
         "type": "exit",
         "connections": [
-            {"to": "hub_mgroad", "distance_km": 8.5, "road_name": "Silk Board → MG Road"},
-            {"to": "node_2_koramangala", "distance_km": 3.0, "road_name": "Silk Board → Koramangala"},
-            {"to": "cam_d_electronic_city", "distance_km": 15.0, "road_name": "Silk Board → Electronic City"},
-            {"to": "cam_e_btm", "distance_km": 2.8, "road_name": "Silk Board → BTM Layout"},
+            {"to": "hub_mgroad", "distance_km": 8.5, "road_name": "Silk Board -> MG Road"},
+            {"to": "node_2_koramangala", "distance_km": 3.0, "road_name": "Silk Board -> Koramangala"},
+            {"to": "cam_d_electronic_city", "distance_km": 15.0, "road_name": "Silk Board -> Electronic City"},
+            {"to": "cam_e_btm", "distance_km": 2.8, "road_name": "Silk Board -> BTM Layout"},
         ]
     },
     
@@ -71,7 +71,7 @@ ROAD_NETWORK = {
         "lng": 77.6600,
         "type": "checkpoint",
         "connections": [
-            {"to": "node_1_indiranagar", "distance_km": 12.0, "road_name": "Airport → Indiranagar"},
+            {"to": "node_1_indiranagar", "distance_km": 12.0, "road_name": "Airport -> Indiranagar"},
         ]
     },
     
@@ -81,7 +81,7 @@ ROAD_NETWORK = {
         "lng": 77.7500,
         "type": "checkpoint",
         "connections": [
-            {"to": "node_1_indiranagar", "distance_km": 10.5, "road_name": "Whitefield → Indiranagar"},
+            {"to": "node_1_indiranagar", "distance_km": 10.5, "road_name": "Whitefield -> Indiranagar"},
         ]
     },
     
@@ -91,8 +91,8 @@ ROAD_NETWORK = {
         "lng": 77.6380,
         "type": "checkpoint",
         "connections": [
-            {"to": "node_2_koramangala", "distance_km": 2.5, "road_name": "HSR → Koramangala"},
-            {"to": "cam_d_electronic_city", "distance_km": 12.0, "road_name": "HSR → Electronic City"},
+            {"to": "node_2_koramangala", "distance_km": 2.5, "road_name": "HSR -> Koramangala"},
+            {"to": "cam_d_electronic_city", "distance_km": 12.0, "road_name": "HSR -> Electronic City"},
         ]
     },
     
@@ -102,8 +102,8 @@ ROAD_NETWORK = {
         "lng": 77.6600,
         "type": "exit",
         "connections": [
-            {"to": "node_3_silkboard", "distance_km": 15.0, "road_name": "E-City → Silk Board"},
-            {"to": "cam_c_hsr", "distance_km": 12.0, "road_name": "E-City → HSR"},
+            {"to": "node_3_silkboard", "distance_km": 15.0, "road_name": "E-City -> Silk Board"},
+            {"to": "cam_c_hsr", "distance_km": 12.0, "road_name": "E-City -> HSR"},
         ]
     },
     
@@ -113,9 +113,9 @@ ROAD_NETWORK = {
         "lng": 77.6101,
         "type": "checkpoint",
         "connections": [
-            {"to": "node_3_silkboard", "distance_km": 2.8, "road_name": "BTM → Silk Board"},
-            {"to": "node_2_koramangala", "distance_km": 3.5, "road_name": "BTM → Koramangala"},
-            {"to": "hub_mgroad", "distance_km": 4.2, "road_name": "BTM → MG Road"},
+            {"to": "node_3_silkboard", "distance_km": 2.8, "road_name": "BTM -> Silk Board"},
+            {"to": "node_2_koramangala", "distance_km": 3.5, "road_name": "BTM -> Koramangala"},
+            {"to": "hub_mgroad", "distance_km": 4.2, "road_name": "BTM -> MG Road"},
         ]
     },
     
@@ -126,8 +126,8 @@ ROAD_NETWORK = {
         "lng": 77.6150,
         "type": "checkpoint",
         "connections": [
-            {"to": "hub_mgroad", "distance_km": 2.5, "road_name": "Ulsoor → MG Road"},
-            {"to": "node_1_indiranagar", "distance_km": 3.0, "road_name": "Ulsoor → Indiranagar"},
+            {"to": "hub_mgroad", "distance_km": 2.5, "road_name": "Ulsoor -> MG Road"},
+            {"to": "node_1_indiranagar", "distance_km": 3.0, "road_name": "Ulsoor -> Indiranagar"},
         ]
     },
     
@@ -137,8 +137,8 @@ ROAD_NETWORK = {
         "lng": 77.7015,
         "type": "checkpoint",
         "connections": [
-            {"to": "cam_b_whitefield", "distance_km": 4.5, "road_name": "Marathahalli → Whitefield"},
-            {"to": "node_1_indiranagar", "distance_km": 6.5, "road_name": "Marathahalli → Indiranagar"},
+            {"to": "cam_b_whitefield", "distance_km": 4.5, "road_name": "Marathahalli -> Whitefield"},
+            {"to": "node_1_indiranagar", "distance_km": 6.5, "road_name": "Marathahalli -> Indiranagar"},
         ]
     },
     
@@ -148,8 +148,8 @@ ROAD_NETWORK = {
         "lng": 77.5950,
         "type": "checkpoint",
         "connections": [
-            {"to": "cam_e_btm", "distance_km": 3.8, "road_name": "Bannerghatta → BTM"},
-            {"to": "cam_d_electronic_city", "distance_km": 8.0, "road_name": "Bannerghatta → E-City"},
+            {"to": "cam_e_btm", "distance_km": 3.8, "road_name": "Bannerghatta -> BTM"},
+            {"to": "cam_d_electronic_city", "distance_km": 8.0, "road_name": "Bannerghatta -> E-City"},
         ]
     },
     
@@ -159,8 +159,8 @@ ROAD_NETWORK = {
         "lng": 77.5850,
         "type": "checkpoint",
         "connections": [
-            {"to": "node_2_koramangala", "distance_km": 4.2, "road_name": "JP Nagar → Koramangala"},
-            {"to": "cam_h_bannerghatta", "distance_km": 2.5, "road_name": "JP Nagar → Bannerghatta"},
+            {"to": "node_2_koramangala", "distance_km": 4.2, "road_name": "JP Nagar -> Koramangala"},
+            {"to": "cam_h_bannerghatta", "distance_km": 2.5, "road_name": "JP Nagar -> Bannerghatta"},
         ]
     },
     
@@ -170,8 +170,8 @@ ROAD_NETWORK = {
         "lng": 77.5390,
         "type": "checkpoint",
         "connections": [
-            {"to": "hub_mgroad", "distance_km": 7.5, "road_name": "Yeshwanthpur → MG Road"},
-            {"to": "cam_a_airport", "distance_km": 8.5, "road_name": "Yeshwanthpur → Airport"},
+            {"to": "hub_mgroad", "distance_km": 7.5, "road_name": "Yeshwanthpur -> MG Road"},
+            {"to": "cam_a_airport", "distance_km": 8.5, "road_name": "Yeshwanthpur -> Airport"},
         ]
     },
     
@@ -181,8 +181,8 @@ ROAD_NETWORK = {
         "lng": 77.5970,
         "type": "checkpoint",
         "connections": [
-            {"to": "cam_a_airport", "distance_km": 5.0, "road_name": "Hebbal → Airport"},
-            {"to": "cam_j_yeshwanthpur", "distance_km": 6.2, "road_name": "Hebbal → Yeshwanthpur"},
+            {"to": "cam_a_airport", "distance_km": 5.0, "road_name": "Hebbal -> Airport"},
+            {"to": "cam_j_yeshwanthpur", "distance_km": 6.2, "road_name": "Hebbal -> Yeshwanthpur"},
         ]
     },
     
@@ -192,8 +192,8 @@ ROAD_NETWORK = {
         "lng": 77.6950,
         "type": "checkpoint",
         "connections": [
-            {"to": "cam_b_whitefield", "distance_km": 5.5, "road_name": "KR Puram → Whitefield"},
-            {"to": "cam_a_airport", "distance_km": 8.0, "road_name": "KR Puram → Airport"},
+            {"to": "cam_b_whitefield", "distance_km": 5.5, "road_name": "KR Puram -> Whitefield"},
+            {"to": "cam_a_airport", "distance_km": 8.0, "road_name": "KR Puram -> Airport"},
         ]
     },
 }

@@ -203,6 +203,38 @@ function App() {
 
   const predictions = tracking?.predictions || tracking?.next_predictions || [];
   const chain = autoTracking?.tracking_chain || [];
+  const missionSteps = [
+    {
+      label: "Evidence intake",
+      value: uploadResult ? "Loaded" : "Standing by",
+      active: Boolean(uploadResult),
+      icon: Upload
+    },
+    {
+      label: "Feature lock",
+      value: `${vehicle.color || "Unknown"} ${vehicle.model || "vehicle"}`,
+      active: Boolean(vehicle.color || vehicle.model || vehicle.license_plate),
+      icon: Crosshair
+    },
+    {
+      label: "Camera scan",
+      value: scanResult?.found ? `${pct(scanResult.confidence)} match` : "No scan yet",
+      active: Boolean(scanResult?.found),
+      icon: Search
+    },
+    {
+      label: "Route forecast",
+      value: predictions.length ? `${predictions.length} routes` : autoTracking ? `${autoTracking.total_hops} hops` : "Awaiting track",
+      active: Boolean(predictions.length || autoTracking),
+      icon: Route
+    },
+    {
+      label: "Police alert",
+      value: autoTracking || predictions.length ? "Units queued" : "Hold",
+      active: Boolean(autoTracking || predictions.length),
+      icon: AlertTriangle
+    }
+  ];
 
   async function runTask(key, fn) {
     setBusy((prev) => ({ ...prev, [key]: true }));
@@ -366,6 +398,22 @@ function App() {
         <Metric label="Models mounted" value={status?.models_path || "-"} icon={Activity} />
         <Metric label="Assets mounted" value={status?.assets_path || "-"} icon={FileUp} />
         <Metric label="Tracked vehicles" value={vehicles.length} icon={Crosshair} />
+      </section>
+
+      <section className="ops-strip">
+        {missionSteps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <div key={step.label} className={cx("ops-step", step.active && "active")}>
+              <div className="ops-index">{String(index + 1).padStart(2, "0")}</div>
+              <Icon size={18} />
+              <div>
+                <strong>{step.label}</strong>
+                <span>{step.value}</span>
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       <section className="workspace">
